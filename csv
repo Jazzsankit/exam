@@ -1,0 +1,458 @@
+1.
+
+import math
+arr = [115.3,195.5,120.5,110.2,90.4,105.6,110.9,116.3,122.3,125.4]
+sum = 0
+for i in arr:
+sum = sum + i
+mean = sum/10
+print("mean=",mean)
+arr.sort()
+mid = len(arr)//2
+med = (arr[mid]+arr[mid+1])/2
+print("median=",med)
+count = 1
+m=0
+diff=0.0
+var=0.0
+mod=0.0
+for i in range(0,10):
+for j in range(i+1,10):
+if arr[i]==arr[j]:
+count=count+1
+if count>m:
+m=count
+mod=arr[i]
+if m==1:
+print("No mode")
+else:
+print("Mode=",mod)
+for i in arr:
+diff=i-mean
+var=var+(diff**2)
+print("variance=",var)
+stdev=math.sqrt(var)
+print("Std Deviation",stdev)
+diff = arr[9]-arr[0]
+print("Min Max normalization")
+for i in arr:
+y = (i-arr[0])/diff
+print(y)
+print("Standardization")
+for i in arr:
+stn = (i-mean)/stdev
+print(stn)
+
+
+2.
+
+import numpy as np
+import pandas as pd
+from copy import deepcopy
+k=3
+import matplotlib.pyplot as plt
+
+X = pd.read_csv('/content/kmeans.csv')
+print(X)
+
+X = X[["X1","X2"]]
+#Visualise data points
+plt.scatter(X["X1"],X["X2"],c='black')
+plt.xlabel('AnnualIncome')
+plt.ylabel('Loan Amount (In Thousands)')
+plt.show()
+
+x1 = X['X1'].values
+x2 = X['X2'].values
+
+X = np.array(list(zip(x1,x2)))
+print(X)
+
+C_x = [6.2,6.6,6.5]
+C_y = [3.2,3.7,3.0]
+
+Centroid = np.array(list(zip(C_x,C_y)))
+print("Initial Centroids")
+print(Centroid.shape)
+
+Centroid_old = np.zeros(Centroid.shape)
+print(Centroid_old)
+
+clusters = np.zeros(len(X))
+print(clusters)
+
+def euclidean(a,b,ax=1):
+  return np.linalg.norm(a-b,axis=ax)
+
+error = euclidean(Centroid,Centroid_old,None)
+print(error)
+
+iterr = 0
+
+while error != 0:
+        # Assigning each value to its closest cluster
+        iterr = iterr + 1
+        for i in range(len(X)):
+            distances = euclidean(X[i], Centroid)
+            cluster = np.argmin(distances)
+            clusters[i] = cluster
+        Centroid_old = deepcopy(Centroid)
+        print("Old Centroid")
+        print(Centroid_old)
+            
+        
+        # Finding the new centroids by taking the Mean
+        for p in range(k):
+            points = [X[j] for j in range(len(X)) if clusters[j] == p]
+            Centroid[p] = np.mean(points, axis=0)
+        print(" New Centroids after ", iterr," Iteration \n", Centroid)
+        error = euclidean(Centroid, Centroid_old, None)
+        print("Error  ... ",error)
+        print("Data points belong to which cluster")
+        print(clusters)
+        print("********************************************************")
+
+
+
+3.
+
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+
+pima = pd.read_csv("/content/zoo_data.csv")
+
+pima.head()
+
+y=pima["1.7"]
+
+import numpy as np
+y=np.array(y)
+print(y)
+
+x=pima.drop(columns=["1.7"])
+
+X_train, X_test, y_train, y_test = train_test_split(x, y,test_size=0.2,random_state=4)
+
+clf = DecisionTreeClassifier()
+
+clf = clf.fit(X_train,y_train)
+
+y_pred = clf.predict(X_test)
+
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
+print("Confusion Matrix:\n",metrics.confusion_matrix(y_test, y_pred))
+
+print("Classification Report:\n",metrics.classification_report(y_test, y_pred))
+
+
+4.
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import statistics
+
+df = pd.read_csv("/content/Food-Truck-LineReg.csv")
+df
+
+df.plot(x="xlabel", y="ylabel", style="o")
+plt.show()
+x_mean = df["xlabel"].mean()
+y_mean = df["ylabel"].mean()
+print(x_mean, y_mean)
+
+df["x"] = df["xlabel"] - x_mean
+df["y"] = df["ylabel"] - y_mean
+df["x*y"] = df["x"] * df["y"]
+df["x^2"] = df["x"]**2
+df["y^2"] = df["y"]**2
+df
+
+summation_x_y = df["x*y"].sum()
+summation_x_squared = df["x^2"].sum()
+summation_y_squared = df["y^2"].sum()
+print(summation_x_y, summation_x_squared, summation_y_squared)
+
+correlation = summation_x_y / (summation_x_squared * summation_y_squared)**0.5
+correlation
+
+std_deviation_x = statistics.stdev(df["xlabel"])
+std_deviation_y = statistics.stdev(df["ylabel"])
+print(std_deviation_x, std_deviation_y)
+
+m = correlation * (std_deviation_y / std_deviation_x)
+m
+
+c = y_mean - m * x_mean
+c
+
+df["y_prediction"] = m * df["xlabel"] + c
+df
+
+plot1 = plt.scatter(df["xlabel"], df["ylabel"])
+plot2 = plt.plot(df["xlabel"], df["y_prediction"])
+plt.show()
+
+ssr=sum((df["y_prediction"]-y_mean)**2)
+ssr
+
+sse=((df['ylabel']-df["y_prediction"])**2).sum()
+sse
+
+tss=sum((df['ylabel']-y_mean)**2)
+tss
+
+tss_new=sse+ssr
+tss_new
+
+r_sq=correlation**2
+r_sq
+
+cost=sse/96
+cost
+
+5.
+
+import pandas as pd
+import math
+from sklearn import preprocessing
+
+data = pd.read_csv('/content/Student-University.csv',names=['x1','x2','y'])
+data
+
+b0=0.0
+b1=0.0
+b2=0.0
+
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import Kfold
+
+x = data.iloc[:,[0,1]].values
+#x = data.drop(columns=["y"])
+y = data.iloc[:,2].values
+xp=preprocessing.scale(x)
+kf=KFold(n_splits=5)
+
+import numpy as np
+for train_index,test_index in kf.split(xp):
+xtrain,xtest,ytrain,ytest=train_test_split(xp,y,test_size=0.20,random_state=0)
+x1=xtrain[:,0]
+x2=xtrain[:,1]
+b0=0.0
+b1=0.0
+b2=0.0
+epoch=100
+alpha=0.001
+while(epoch>0):
+for i in range(len(xtrain)):
+prediction=1/(1+np.exp(-(b0+b1*x1[i]+b2*x2[i])))
+b0=b0+alpha*(ytrain[i]-prediction)*prediction*(1-prediction)*1.0
+b1=b1+alpha*(ytrain[i]-prediction)*prediction*(1-prediction)*x1[i]
+b2=b2+alpha*(ytrain[i]-prediction)*prediction*(1-prediction)*x2[i]
+epoch=epoch-1
+print(b0)
+print(b1)
+print(b2)
+
+finalpred=[]
+ypred=[]
+#ypred=[0]*len(xtest)
+x3 = xtest[:,0]
+x4 = xtest[:,1]
+for i in range(len(xtest)):
+ypred.append(np.round(1/(1+np.exp(-(b0+(b1*x3[i])+(b2*x4[i]))))))
+print(ypred[i])
+#finalpred.append(np.round(ypred[i]))
+
+from sklearn.metrics import accuracy_score
+
+print("Accuracy",accuracy_score(ytest,ypred))
+
+pca
+
+import numpy as np
+ import pandas as pd 
+import matplotlib.pyplot as plt
+ import seaborn as sns 
+from sklearn.preprocessing import StandardScaler
+
+df=pd.read_csv('iris.csv') 
+df.head()
+
+X = df.drop(['variety'],axis=1)
+X_scaled = StandardScaler().fit_transform(X) 
+X_scaled[:5]
+y=df['variety']
+features = X_scaled.T 
+cov_matrix = np.cov(features) 
+cov_matrix[:5]
+
+values, vectors = np.linalg.eig(cov_matrix) 
+values[:5]
+
+vectors[:5]
+explained_variances = []
+ for i in range(len(values)):
+ explained_variances.append((values[i] / np.sum(values))*100)
+print("variances of each feature",explained_variances)
+
+plt.figure(figsize=(8,4)) 
+plt.bar(range(4),explained_variances, alpha=0.6) 
+plt.ylabel('Percentage of explained variance')
+plt.xlabel('Dimensions')
+
+projected_1 = X_scaled.dot(vectors.T[0])
+ projected_2 = X_scaled.dot(vectors.T[1])
+ res = pd.DataFrame(projected_1, columns=['PC1']) 
+res['PC2'] = projected_2 
+res['Y'] = y
+ res.head()
+sns.FacetGrid(res, hue="Y", height=6).map(plt.scatter, 'PC1', 'PC2').add_legend() plt.show()
+
+
+b)
+1.
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
+df = pd.read_csv('/content/data_vowel_bayes.csv',names=['x1','x2','x3','T'])
+df
+
+y = df["T"]
+x = df.drop(["T"], axis = 1)
+x = (x - x.min()) / (x.max() - x.min())
+x
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.25, random_state = 0)
+
+from sklearn.naive_bayes import GaussianNB
+gnb = GaussianNB()
+gnb.fit(X_train, y_train)
+print(gnb.priors,gnb.var_smoothing)
+
+y_pred = gnb.predict(X_test)
+
+from sklearn import metrics
+print("Gaussian Naive Bayes model accuracy(in %):", metrics.accuracy_score(y_test,y_pred))
+
+cm = metrics.confusion_matrix(y_test, y_pred)
+cr = metrics.classification_report(y_test,y_pred)
+print(cr)
+
+print(cm)
+
+
+
+
+
+2.
+
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.svm import SVC
+
+df = pd.read_csv("/content/pima-diabetes.csv")
+df
+
+def fitting(X, y, C, gamma):
+# Create training and testing samples
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+iters = ['rbf','poly','sigmoid']
+
+for i in iters:
+model = SVC(kernel=i, probability=True, C=C, gamma=gamma)
+clf = model.fit(X_train, y_train)
+
+# Predict class labels on training data
+pred_labels_tr = model.predict(X_train)
+# Predict class labels on a test data
+pred_labels_te = model.predict(X_test)
+
+# Use score method to get accuracy of the model
+print('----- Evaluation on Test Data ----- ', i)
+score_te = model.score(X_test, y_test)
+print('Accuracy Score: ', score_te)
+# Look at classification report to evaluate the model
+print(classification_report(y_test, pred_labels_te, zero_division=0))
+
+print('----- Evaluation on Training Data ----- ', i)
+score_tr = model.score(X_train, y_train)
+print('Accuracy Score: ', score_tr)
+# Look at classification report to evaluate the model
+print(classification_report(y_train, pred_labels_tr, zero_division=0))
+print('--------------------------------------------------------')
+
+# Select data for modeling
+X=df.loc[:,df.columns!='Outcome']
+y=df['Outcome'].values
+
+# Fit the model and display results
+fitting(X, y, 1, 'scale')
+
+
+
+
+3.
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+data = pd.read_csv('heart.csv')
+
+data.head()
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from matplotlib import rcParams
+import warnings
+
+data.columns
+
+x=data.drop(columns=["target"])
+y=data["target"]
+
+
+caler=StandardScaler()
+X_scaled=scaler.fit_transform(x)
+
+X_train,X_test,Y_train,Y_test=train_test_split(X_scaled,y,stratify=y,test_size=0.10,random_state=34)
+
+ classifier = RandomForestClassifier(n_estimators=100)
+classifier.fit(X_train,Y_train)
+
+y_pred = classifier.predict(X_test)
+
+print("Accuracy:",accuracy_score(Y_test,y_pred))
+
+feature_importances_df = pd.DataFrame(
+{"feature":list(X.columns),"importance":classifier.feature_importances_}
+).sort_values("importance",ascending=False)
+
+feature_importances_df
+
+dsX_train,dsX_test,dsY_train,dsY_test=train_test_split(X_scaled,y,stratify=y,test_size=0.10,random_state=34)
+
+ds = DecisionTreeClassifier()
+ ds.fit(dsX_train,dsY_train) 
+dsy_pred = ds.predict(dsX_test)
+
+print("Accuracy:",accuracy_score(dsY_test,dsy_pred))
+
+
+
+
